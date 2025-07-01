@@ -2,15 +2,18 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:markus/BleDeviceDetailPage.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class BleMapperPage extends StatefulWidget {
+  const BleMapperPage({super.key});
+
   @override
   _BleMapperPageState createState() => _BleMapperPageState();
 }
 
 class _BleMapperPageState extends State<BleMapperPage> {
-  List<ScanResult> _scanResults = [];
+  final List<ScanResult> _scanResults = [];
   final Map<DeviceIdentifier, int> _rssiMap = {};
   StreamSubscription? _scanSubscription;
 
@@ -31,15 +34,15 @@ class _BleMapperPageState extends State<BleMapperPage> {
 
   void _startScan() {
   _scanResults.clear();
-  _stopScan(); // Avoid duplicates
+  _stopScan(); 
 
   FlutterBluePlus.startScan();
 
   _scanSubscription = FlutterBluePlus.scanResults.listen((results) {
     setState(() {
       for (var result in results) {
-        _rssiMap[result.device.id] = result.rssi;
-        final existingIndex = _scanResults.indexWhere((r) => r.device.id == result.device.id);
+        _rssiMap[result.device.remoteId] = result.rssi;
+        final existingIndex = _scanResults.indexWhere((r) => r.device.remoteId == result.device.remoteId);
         if (existingIndex == -1) {
           _scanResults.add(result);
         } else {
@@ -60,7 +63,7 @@ class _BleMapperPageState extends State<BleMapperPage> {
 }
 
   double _estimateDistance(int rssi) {
-    const txPower = -59; // default power at 1m
+    const txPower = -59; 
     if (rssi == 0) return -1.0;
     double _ = rssi / txPower;
     return pow(10, (txPower - rssi) / (10 * 2)).toDouble();
@@ -80,12 +83,24 @@ class _BleMapperPageState extends State<BleMapperPage> {
         itemCount: _scanResults.length,
         itemBuilder: (context, index) {
           final result = _scanResults[index];
-          final distance = _estimateDistance(result.rssi);
           return ListTile(
-            title: Text(result.device.name.isEmpty ? "(Unnamed Device)" : result.device.name),
-            subtitle: Text("RSSI: ${result.rssi}  →  ~${distance.toStringAsFixed(2)} m"),
-            trailing: Text(result.device.id.toString()),
+            title: Text(result.device.platformName.isNotEmpty
+                ? result.device.platformName
+                : result.advertisementData.advName.isNotEmpty
+                    ? result.advertisementData.advName
+                    : "(Unnamed Device)"),
+            subtitle: Text("RSSI: ${result.rssi} → ~${_estimateDistance(result.rssi).toStringAsFixed(2)} m"),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BleDeviceDetailPage(result: result),
+                ),
+              );
+            },
           );
+
         },
       ),
       floatingActionButton: FloatingActionButton(
