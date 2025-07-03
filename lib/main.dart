@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
-import 'ble_scan_page.dart';
+import 'homePage.dart';
 
 void main() {
-  runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: BleMapperPage(),
-    ),
-  );
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'BLE Visualizer',
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        useMaterial3: true,
+      ),
+      home: const HomePage(),
+    );
+  }
 }
