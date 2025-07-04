@@ -1,12 +1,12 @@
-// ignore: file_names
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'ble_device_identifier.dart';
+import 'discovered_device.dart';
 
 class BleDeviceDetailPage extends StatelessWidget {
   final ScanResult result;
 
-  const BleDeviceDetailPage({super.key, required this.result});
+  const BleDeviceDetailPage({super.key, required this.result, required ScanResult device, required AdvertisementData advertisementData, required Map<int, List<int>> manufacturerData});
 
   String _formatManufacturerData(Map<int, List<int>> data) {
     return data.entries
@@ -19,6 +19,7 @@ class BleDeviceDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final adv = result.advertisementData;
     final deviceName = BleDeviceIdentifier.getDeviceName(result);
+    final DiscoveredDevice? discoveredDevice = ModalRoute.of(context)?.settings.arguments as DiscoveredDevice?;
 
     return Scaffold(
       appBar: AppBar(title: Text(deviceName)),
@@ -114,6 +115,19 @@ class BleDeviceDetailPage extends StatelessWidget {
                 ),
               ),
             ],
+            if (discoveredDevice != null && discoveredDevice.latitude != null && discoveredDevice.longitude != null) Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Last Known Location", style: Theme.of(context).textTheme.titleLarge),
+                    Text("Latitude: ${discoveredDevice.latitude}"),
+                    Text("Longitude: ${discoveredDevice.longitude}"),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
