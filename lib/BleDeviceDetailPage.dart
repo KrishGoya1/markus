@@ -5,8 +5,16 @@ import 'discovered_device.dart';
 
 class BleDeviceDetailPage extends StatelessWidget {
   final ScanResult result;
+  final DiscoveredDevice? discoveredDevice; // Add this line
 
-  const BleDeviceDetailPage({super.key, required this.result, required ScanResult device, required AdvertisementData advertisementData, required Map<int, List<int>> manufacturerData});
+  const BleDeviceDetailPage({
+    super.key,
+    required this.result,
+    required ScanResult device,
+    required AdvertisementData advertisementData,
+    required Map<int, List<int>> manufacturerData,
+    this.discoveredDevice, // Add this line
+  });
 
   String _formatManufacturerData(Map<int, List<int>> data) {
     return data.entries

@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:markus/BleDeviceDetailPage.dart';
+import 'package:markus/radar_view.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'ble_device_identifier.dart';
 import 'discovered_device.dart';
@@ -44,11 +45,11 @@ class _BleMapperPageState extends State<BleMapperPage> {
 
   void _startScan() {
     if (_isScanning) return;
-
+    
     setState(() {
       _isScanning = true;
     });
-
+    
     FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
 
     _scanSubscription = FlutterBluePlus.scanResults.listen((results) {
@@ -66,7 +67,10 @@ class _BleMapperPageState extends State<BleMapperPage> {
               final parts = utf8.decode(gpsRaw).split(',');
               lat = double.parse(parts[0]);
               lon = double.parse(parts[1]);
-            } catch (_) {}
+              print("Received coordinates: $lat, $lon"); // Debug print
+            } catch (e) {
+              print("Error parsing coordinates: $e"); // Debug print
+            }
           }
           final dev = DiscoveredDevice(
             id: result.device.remoteId,
@@ -203,6 +207,7 @@ class _BleMapperPageState extends State<BleMapperPage> {
                             advertisementData: device.advertisementData,
                             manufacturerData:
                                 device.advertisementData.manufacturerData,
+                            discoveredDevice: dev, // Pass the DiscoveredDevice object
                           ),
                         ),
                       );
@@ -220,10 +225,37 @@ class _BleMapperPageState extends State<BleMapperPage> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _isScanning ? _stopScan : _startScan,
-        child: Icon(_isScanning ? Icons.stop : Icons.refresh),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 32.0),
+            child: FloatingActionButton(
+              onPressed: () {
+                // Get current location and show radar
+                // For demo, using fixed coordinates
+                const centerLat = 0.0;
+                const centerLon = 0.0;
+                
+                showDialog(
+                  context: context,
+                  builder: (context) => RadarView(
+                    devices: _devices,
+                    centerLat: centerLat,
+                    centerLon: centerLon,
+                  ),
+                );
+              },
+              child: Icon(Icons.radar),
+            ),
+          ),
+          FloatingActionButton(
+            onPressed: _isScanning ? _stopScan : _startScan,
+            child: Icon(_isScanning ? Icons.stop : Icons.refresh),
+          ),
+        ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
